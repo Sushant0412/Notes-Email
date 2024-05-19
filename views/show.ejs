@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= task.title %></title>
+  </head>
+  <body>
+    <h1><%= task.title %></h1>
+    <p>Description: <%= task.description %></p>
+    <p>Deadline: <%= task.deadline.toLocaleString() %></p>
+    <p>User Email: <%= task.userEmail %></p>
+    <a href="/tasks/<%= task._id %>/edit">Edit</a>
+    <form action="/tasks/<%= task._id %>?_method=DELETE" method="post">
+      <button type="submit">Delete</button>
+    </form>
+    <a href="/tasks">Back</a>
+  </body>
+</html>

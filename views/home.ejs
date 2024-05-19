@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+</head>
+<body>
+  <h1>All Tasks</h1>
+  <a href="/tasks/new">Create New Task</a>
+  <ul>
+    <% allTasks.forEach(task => { %>
+      <li>
+        <a href="/tasks/<%= task._id %>"><%= task.title %></a> - <%= task.deadline.toLocaleString() %>
+      </li>
+    <% }) %>
+  </ul>
+</body>
+</html>
