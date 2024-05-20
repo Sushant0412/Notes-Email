@@ -83,6 +83,11 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
+// GET request handler for rendering the signup form
+app.get("/signup", (req, res) => {
+  res.render("signup");
+});
+
 // After the user logs in successfully
 app.post(
   "/login",
@@ -146,9 +151,9 @@ app.get("/tasks/new", (req, res) => {
 
 app.post("/tasks/new", async (req, res, next) => {
   try {
-    const { title, description, deadline } = req.body;
+    const { title, description, deadline, userId } = req.body;
 
-    if (!title || !deadline || !req.session.userId) {
+    if (!title || !deadline || !userId) {
       throw new AppError(
         "Title, deadline, and user information are required fields",
         400
@@ -161,14 +166,18 @@ app.post("/tasks/new", async (req, res, next) => {
       throw new AppError("Invalid deadline date", 400);
     }
 
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
     const userEmail = user.email;
 
     const newTask = new Task({
       title: title,
       description: description,
       deadline: deadlineDate,
-      user: req.session.userId,
+      user: userId,
       userEmail: userEmail,
     });
     await newTask.save();
