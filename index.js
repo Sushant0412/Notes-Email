@@ -169,12 +169,23 @@ app.post("/tasks/new", async (req, res, next) => {
       throw new AppError("Invalid deadline date", 400);
     }
 
+    // Ensure deadline is not in the past
+    const currentTime = new Date();
+    if (deadlineDate <= currentTime) {
+      throw new AppError("Deadline cannot be in the past", 400);
+    }
+
+    // Ensure deadline is at least one hour ahead
+    const oneHourAhead = new Date(currentTime.getTime() + 3600 * 1000);
+    if (deadlineDate <= oneHourAhead) {
+      throw new AppError("Deadline must be at least one hour ahead", 400);
+    }
+
     const user = await User.findById(userId);
     if (!user) {
       throw new AppError("User not found", 404);
     }
 
-    
     const userEmail = user.email;
 
     const newTask = new Task({
