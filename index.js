@@ -57,13 +57,18 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendReminderEmail(userEmail, taskTitle) {
+async function sendReminderEmail(
+  userEmail,
+  taskTitle,
+  taskDescription,
+  taskDeadline
+) {
   try {
     await transporter.sendMail({
       from: process.env.EMAIL,
       to: userEmail,
       subject: `Reminder: Task "${taskTitle}" is due soon`,
-      text: `This is a reminder that your task "${taskTitle}" is due in one hour. Please complete it on time.`,
+      text: `This is a reminder that your task "${taskTitle}:"\n ${taskDescription}.\n is due in one hour. \nDeadline: ${taskDeadline}\n.Please complete it on time.`,
     });
     console.log("Reminder email sent successfully");
   } catch (error) {
@@ -212,7 +217,12 @@ app.post("/tasks/new", async (req, res, next) => {
     });
     await newTask.save();
 
-    await sendReminderEmail(userEmail, newTask.title);
+    await sendReminderEmail(
+      userEmail,
+      newTask.title,
+      newTask.description,
+      newTask.deadline
+    );
 
     res.redirect("/tasks");
   } catch (error) {
@@ -268,20 +278,6 @@ app.put(
     const { id } = req.params;
     await Task.findByIdAndUpdate(id, req.body, { runValidators: true });
     res.redirect(`/tasks/${id}`);
-  })
-);
-
-app.post(
-  "/tasks",
-  protect,
-  wrapAsync(async (req, res, next) => {
-    const newTask = new Task(req.body);
-    await newTask.save();
-    const oneHourBeforeDeadline = new Date(newTask.deadline - 3600 * 1000);
-    setTimeout(() => {
-      sendReminderEmail(newTask.userEmail, newTask.title);
-    }, oneHourBeforeDeadline - Date.now());
-    res.redirect(`/tasks/${newTask._id}`);
   })
 );
 
