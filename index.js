@@ -140,8 +140,23 @@ app.get(
   protect,
   wrapAsync(async (req, res, next) => {
     const userId = req.session.userId;
+    // Find all tasks for the user
     const allTasks = await Task.find({ user: userId });
-    res.render("home", { allTasks });
+
+    // Check for tasks with crossed deadlines
+    const tasksToDelete = allTasks.filter((task) => task.deadline < Date.now());
+
+    // Delete tasks with crossed deadlines
+    for (const task of tasksToDelete) {
+      await Task.findByIdAndDelete(task._id);
+      console.log(`Deleted task with crossed deadline: ${task.title}`);
+    }
+
+    // Get remaining tasks after deletion
+    const remainingTasks = await Task.find({ user: userId });
+
+    // Render the home page with the remaining tasks
+    res.render("home", { allTasks: remainingTasks });
   })
 );
 
