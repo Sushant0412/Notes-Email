@@ -7,7 +7,6 @@ const taskSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true,
   },
   deadline: {
     type: Date,
@@ -15,6 +14,11 @@ const taskSchema = new mongoose.Schema({
   },
   userEmail: {
     type: String,
+    required: true,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
 });
