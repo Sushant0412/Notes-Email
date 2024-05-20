@@ -174,6 +174,7 @@ app.post("/tasks/new", async (req, res, next) => {
       throw new AppError("User not found", 404);
     }
 
+    
     const userEmail = user.email;
 
     const newTask = new Task({
@@ -264,22 +265,20 @@ app.delete("/tasks/:id", protect, async (req, res, next) => {
   res.redirect("/tasks");
 });
 
-const handleValidationError = (err) => {
+const handleValidationError = (err, req, res, next) => {
   console.error(err);
-  return new AppError(`Validation Error: ${err.message}`, 400);
+  const status = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).render("error", { errorMessage: message });
 };
 
-app.use((err, req, res, next) => {
-  if (err.name === "ValidationError") {
-    err = handleValidationError(err);
-  }
-  next(err);
-});
+app.use(handleValidationError);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  const { status = 500, message = "Internal Server Error" } = err;
-  res.status(status).send(message);
+  const status = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).render("error", { errorMessage: message });
 });
 
 app.listen(3000, () => {
