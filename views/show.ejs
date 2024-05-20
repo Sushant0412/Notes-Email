@@ -4,17 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= task.title %></title>
-    <link rel="stylesheet" href="/css/show.css">
+    <link rel="stylesheet" href="/css/show.css" />
   </head>
   <body>
-    <h1><%= task.title %></h1>
-    <p>Description: <%= task.description %></p>
-    <p>Deadline: <%= task.deadline.toLocaleString() %></p>
-    <p>User Email: <%= task.userEmail %></p>
-    <a href="/tasks/<%= task._id %>/edit">Edit</a>
-    <form action="/tasks/<%= task._id %>?_method=DELETE" method="post">
-      <button type="submit">Delete</button>
-    </form>
-    <a href="/tasks">Back</a>
+    <div class="main">
+      <h1>Title: <br /><span><%= task.title %></span></h1>
+      <p>
+        <b>Description:</b><br />
+        <%= task.description %>
+      </p>
+      <p><b>Deadline:</b> <%= task.deadline.toLocaleString() %></p>
+      <p><b>User Email:</b> <%= task.userEmail %></p>
+      <div class="btn">
+        <a class="edit" href="/tasks/<%= task._id %>/edit">Edit</a>
+        <form action="/tasks/<%= task._id %>?_method=DELETE" method="post">
+          <button type="submit">Delete</button>
+        </form>
+        <a class="back" href="/tasks">Back</a>
+      </div>
+    </div>
   </body>
 </html>
