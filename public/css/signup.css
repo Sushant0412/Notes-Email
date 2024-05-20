@@ -1,0 +1,78 @@
+/* public/css/login.css */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  color: white;
+  background: url("../images/loginBg.jpg") no-repeat center center fixed;
+  background-size: cover;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+label {
+  text-align: left;
+  color: #01fdf6;
+}
+
+h1 {
+  text-align: center;
+}
+
+form {
+  background-color: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 270px;
+  text-align: center;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+input[type="email"],
+input[type="password"] {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background-color: #0779e4;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #055bb5;
+}
+
+a {
+  color: #01fdf6;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

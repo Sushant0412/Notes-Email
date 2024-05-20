@@ -19,6 +19,8 @@ dotenv.config();
 const app = express();
 console.clear();
 
+app.use(express.static(path.join(process.cwd(), "public")));
+
 // Initialize session middleware
 app.use(
   session({
@@ -133,11 +135,15 @@ app.post(
   })
 );
 
-app.get("/tasks", protect, wrapAsync(async (req, res, next) => {
-  const userId = req.session.userId;
-  const allTasks = await Task.find({ user: userId });
-  res.render("home", { allTasks });
-}));
+app.get(
+  "/tasks",
+  protect,
+  wrapAsync(async (req, res, next) => {
+    const userId = req.session.userId;
+    const allTasks = await Task.find({ user: userId });
+    res.render("home", { allTasks });
+  })
+);
 
 app.get("/tasks/new", (req, res) => {
   // Get the user ID from the session

@@ -1,20 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Task Manager</title>
-</head>
-<body>
-  <h1>All Tasks</h1>
-  <a href="/tasks/new">Create New Task</a>
-  <ul>
-    <% allTasks.forEach(task => { %>
-      <li>
-        <a href="/tasks/<%= task._id %>"><%= task.title %></a> - <%= task.deadline.toLocaleString() %>
-      </li>
-    <% }) %>
-  </ul>
-  <a href="/logout">Logout</a>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="/css/home.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <h1>All Tasks</h1>
+      <div>
+        <a class="new" href="/tasks/new"> + New</a>
+        <a class="logout" href="/logout">Logout</a>
+      </div>
+    </div>
+    <div class="allNotes">
+      <ul>
+        <% allTasks.forEach(task => { %>
+        <li type="none">
+          <div class="note">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px">
+                <div>■</div>
+                <h1><%= task.title %></h1>
+              </div>
+              <h3 style="margin-top: -5px;">Deadline: <%= task.deadline.toLocaleString() %></h3>
+            </div>
+            <a class="view" href="/tasks/<%= task._id %>">View</a>
+          </div>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+  </body>
 </html>

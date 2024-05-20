@@ -1,0 +1,82 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 10px;
+  margin: 0;
+  background-color: #75dbcd;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid black;
+}
+
+.logout {
+  padding: 10px;
+  margin-right: 25px;
+  margin-bottom: 5px;
+  font-size: 15px;
+  background: red;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.allNotes {
+  font-size: 10px;
+  margin: 30px auto 0px auto;
+  background-color: #c0d6df;
+  width: 400px;
+
+  border: 2px solid black;
+  border-radius: 20px;
+
+  height: 500px; /* Set a fixed height */
+  overflow-y: auto; /* Enable vertical scrolling */
+  border: 2px solid brown; /* Optional: Add border for clarity */
+}
+
+.view {
+  padding: 10px;
+  margin-right: 25px;
+  margin-bottom: 5px;
+  font-size: 15px;
+  width: 60px;
+  text-align: center;
+  background: #4a6fa5;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.note {
+  display: flex;
+  padding-top: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.new {
+  padding: 10px;
+  margin-right: 25px;
+  margin-bottom: 5px;
+  font-size: 15px;
+  background: green;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.logout:hover {
+  text-decoration: underline;
+}
+
+.new:hover {
+  text-decoration: underline;
+}
+
+.view:hover {
+  text-decoration: underline;
+}
