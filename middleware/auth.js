@@ -17,7 +17,11 @@ export const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id);
+
+    // Set the user ID in the session
+    req.session.userId = user.id;
+
     next();
   } catch (err) {
     return next(new AppError("Invalid token. Please log in again!", 401));
