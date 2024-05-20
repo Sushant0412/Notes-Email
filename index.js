@@ -30,6 +30,16 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  res.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  next();
+});
+
 mongoose
   .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
@@ -90,12 +100,10 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
-// GET request handler for rendering the signup form
 app.get("/signup", (req, res) => {
   res.render("signup");
 });
 
-// After the user logs in successfully
 app.post(
   "/login",
   wrapAsync(async (req, res, next) => {
@@ -112,14 +120,11 @@ app.post(
       secure: process.env.NODE_ENV === "production",
     });
     req.session.userId = user.id;
-    // Log the session information
     console.log("Session after login:", req.session);
-
     res.redirect("/tasks");
   })
 );
 
-// After the user signs up successfully
 app.post(
   "/signup",
   wrapAsync(async (req, res, next) => {
@@ -132,10 +137,7 @@ app.post(
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
-
-    // Log the session information
     console.log("Session after signup:", req.session);
-
     res.redirect("/tasks");
   })
 );
@@ -145,34 +147,27 @@ app.get(
   protect,
   wrapAsync(async (req, res, next) => {
     const userId = req.session.userId;
-    // Find all tasks for the user
     const allTasks = await Task.find({ user: userId });
 
-    // Check for tasks with crossed deadlines
     const tasksToDelete = allTasks.filter((task) => task.deadline < Date.now());
 
-    // Delete tasks with crossed deadlines
     for (const task of tasksToDelete) {
       await Task.findByIdAndDelete(task._id);
       console.log(`Deleted task with crossed deadline: ${task.title}`);
     }
 
-    // Get remaining tasks after deletion
     const remainingTasks = await Task.find({ user: userId });
 
-    // Render the home page with the remaining tasks
     res.render("home", { allTasks: remainingTasks });
   })
 );
 
-app.get("/tasks/new", (req, res) => {
-  // Get the user ID from the session
+app.get("/tasks/new", protect, (req, res) => {
   const userId = req.session.userId;
-  // Render the new task form with the userId included
   res.render("new", { userId: userId });
 });
 
-app.post("/tasks/new", async (req, res, next) => {
+app.post("/tasks/new", protect, async (req, res, next) => {
   try {
     const { title, description, deadline, userId } = req.body;
 
@@ -183,19 +178,16 @@ app.post("/tasks/new", async (req, res, next) => {
       );
     }
 
-    // Ensure deadline is a valid date
     const deadlineDate = new Date(deadline);
     if (isNaN(deadlineDate.getTime())) {
       throw new AppError("Invalid deadline date", 400);
     }
 
-    // Ensure deadline is not in the past
     const currentTime = new Date();
     if (deadlineDate <= currentTime) {
       throw new AppError("Deadline cannot be in the past", 400);
     }
 
-    // Ensure deadline is at least one hour ahead
     const oneHourAhead = new Date(currentTime.getTime() + 3600 * 1000);
     if (deadlineDate <= oneHourAhead) {
       throw new AppError("Deadline must be at least one hour ahead", 400);
@@ -230,14 +222,14 @@ app.post("/tasks/new", async (req, res, next) => {
   }
 });
 
-// Handling GET request to /logout
 app.get("/logout", (req, res) => {
+  res.clearCookie("jwt");
   req.session.destroy((err) => {
     if (err) {
       console.error("Error logging out:", err);
-
       res.status(500).send("Error logging out");
     } else {
+      res.set("Cache-Control", "no-store");
       res.redirect("/login");
     }
   });
