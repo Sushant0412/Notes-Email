@@ -57,21 +57,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-async function scheduleReminderEmail(
-  userEmail,
-  taskTitle,
-  taskDescription,
-  taskDeadline
-) {
+const cronJobs = {};
+
+async function scheduleReminderEmail(task) {
+  const { userEmail, title, description, deadline } = task;
   try {
     // Calculate the reminder time (one hour before the deadline)
-    const reminderTime = new Date(taskDeadline.getTime() - 3600 * 1000);
+    const reminderTime = new Date(deadline.getTime() - 3600 * 1000);
 
     // Convert reminder time to cron pattern
     const cronPattern = `${reminderTime.getMinutes()} ${reminderTime.getHours()} * * *`;
 
     // Schedule the email using node-cron
-    cron.schedule(cronPattern, async () => {
+    const job = cron.schedule(cronPattern, async () => {
       try {
         const transporter = nodemailer.createTransport({
           service: "gmail",
@@ -85,8 +83,8 @@ async function scheduleReminderEmail(
         await transporter.sendMail({
           from: process.env.EMAIL,
           to: userEmail,
-          subject: `Reminder: Task "${taskTitle}" is due soon`,
-          text: `This is a reminder that your task "${taskTitle}":\n ${taskDescription}.\n is due in one hour. \nDeadline: ${taskDeadline.toLocaleString()}\nPlease complete it on time.`,
+          subject: `Reminder: Task "${title}" is due soon`,
+          text: `This is a reminder that your task "${title}":\n ${description}.\n is due in one hour. \nDeadline: ${deadline.toLocaleString()}\nPlease complete it on time.`,
         });
 
         console.log("Reminder email sent successfully");
@@ -94,6 +92,9 @@ async function scheduleReminderEmail(
         console.error("Error sending reminder email:", error);
       }
     });
+
+    // Store the job reference
+    cronJobs[task._id] = job;
   } catch (error) {
     console.error("Error scheduling reminder email:", error);
   }
@@ -223,12 +224,7 @@ app.post("/tasks/new", protect, async (req, res, next) => {
     await newTask.save();
 
     // Schedule the reminder email
-    scheduleReminderEmail(
-      userEmail,
-      newTask.title,
-      newTask.description,
-      deadlineDate
-    );
+    scheduleReminderEmail(newTask);
 
     res.redirect("/tasks");
   } catch (error) {
@@ -289,7 +285,24 @@ app.put(
   protect,
   wrapAsync(async (req, res, next) => {
     const { id } = req.params;
-    await Task.findByIdAndUpdate(id, req.body, { runValidators: true });
+    const updatedTask = await Task.findByIdAndUpdate(id, req.body, {
+      runValidators: true,
+      new: true,
+    });
+
+    if (!updatedTask) {
+      throw new AppError("Task not found", 404);
+    }
+
+    // Cancel the previous cron job
+    if (cronJobs[id]) {
+      cronJobs[id].stop();
+      delete cronJobs[id];
+    }
+
+    // Schedule a new reminder email with updated task data
+    scheduleReminderEmail(updatedTask);
+
     res.redirect(`/tasks/${id}`);
   })
 );
@@ -297,6 +310,13 @@ app.put(
 app.delete("/tasks/:id", protect, async (req, res, next) => {
   const { id } = req.params;
   await Task.findByIdAndDelete(id);
+
+  // Cancel the previous cron job
+  if (cronJobs[id]) {
+    cronJobs[id].stop();
+    delete cronJobs[id];
+  }
+
   res.redirect("/tasks");
 });
 
