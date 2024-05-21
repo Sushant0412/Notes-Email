@@ -60,31 +60,42 @@ app.use(cookieParser());
 const cronJobs = {};
 
 async function scheduleReminderEmail(task) {
-  const { userEmail, title, description, deadline } = task;
-  try {
-    // Calculate the reminder time (one hour before the deadline)
-    const reminderTime = new Date(deadline.getTime() - 3600 * 1000);
+  const { userEmail, title, description, deadline, _id } = task;
 
-    // Convert reminder time to cron pattern
+  try {
+    const reminderTime = new Date(deadline.getTime() - 3600 * 1000);
     const cronPattern = `${reminderTime.getMinutes()} ${reminderTime.getHours()} * * *`;
 
     // Schedule the email using node-cron
-    const job = cron.schedule(cronPattern, async () => {
+    cronJobs[_id] = cron.schedule(cronPattern, async () => {
       try {
         const transporter = nodemailer.createTransport({
-          service: "gmail",
+          port: 465,
+          host: "smtp.gmail.com",
           auth: {
             user: process.env.EMAIL,
             pass: process.env.PASSWORD,
           },
+          secure: true,
         });
 
-        // Send the email
+        await new Promise((resolve, reject) => {
+          transporter.verify((error, success) => {
+            if (error) {
+              console.log(error);
+              reject(error);
+            } else {
+              console.log("Server is ready to take our messages");
+              resolve(success);
+            }
+          });
+        });
+
         await transporter.sendMail({
           from: process.env.EMAIL,
           to: userEmail,
           subject: `Reminder: Task "${title}" is due soon`,
-          text: `This is a reminder that your task "${title}":\n ${description}.\n is due in one hour. \nDeadline: ${deadline.toLocaleString()}\nPlease complete it on time.`,
+          text: `This is a reminder that your task "${title}":\n${description}.\n is due in one hour.\nDeadline: ${deadline.toLocaleString()}\nPlease complete it on time.`,
         });
 
         console.log("Reminder email sent successfully");
@@ -92,9 +103,6 @@ async function scheduleReminderEmail(task) {
         console.error("Error sending reminder email:", error);
       }
     });
-
-    // Store the job reference
-    cronJobs[task._id] = job;
   } catch (error) {
     console.error("Error scheduling reminder email:", error);
   }
