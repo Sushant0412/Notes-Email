@@ -41,10 +41,7 @@ app.use((req, res, next) => {
 });
 
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -256,10 +253,17 @@ app.get(
     const { id } = req.params;
     const task = await Task.findById(id);
     if (!task) {
-      next(new AppError("Task not found", 404));
-    } else {
-      res.render("edit", { task });
+      return next(new AppError("Task not found", 404));
     }
+
+    // Convert deadline to local time
+    const deadline = new Date(
+      task.deadline.getTime() - task.deadline.getTimezoneOffset() * 60000
+    );
+    const deadlineDate = deadline.toISOString().split("T")[0]; // YYYY-MM-DD
+    const deadlineTime = deadline.toISOString().split("T")[1].slice(0, 5); // HH:MM
+
+    res.render("edit", { task, deadlineDate, deadlineTime });
   })
 );
 

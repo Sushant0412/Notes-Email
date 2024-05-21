@@ -36,7 +36,7 @@
           type="datetime-local"
           name="deadline"
           id="deadline"
-          value="<%= new Date(task.deadline).toISOString().slice(0, 16) %>"
+          value="<%= `${deadlineDate}T${deadlineTime}` %>"
           required
         />
         <!-- <label for="userEmail">User Email: </label>
@@ -49,7 +49,7 @@
           required
           readonly
         /> -->
-        <br>
+        <br />
         <button type="submit">Submit</button>
       </form>
     </div>

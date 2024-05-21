@@ -15,6 +15,9 @@
       </div>
     </div>
     <div class="allNotes">
+      <% if (allTasks.length === 0) { %>
+      <h1 style="display: flex; flex-direction:column; justify-content: center; align-items: center; width: 80%; padding-left: 10px;">No tasks available. Click "New" to add tasks.</h1>
+      <% } else { %>
       <ul>
         <% allTasks.forEach(task => { %>
         <li type="none">
@@ -24,13 +27,16 @@
                 <div>■</div>
                 <h1><%= task.title %></h1>
               </div>
-              <h3 style="margin-top: -5px;">Deadline: <%= task.deadline.toLocaleString() %></h3>
+              <h3 style="margin-top: -5px">
+                Deadline: <%= task.deadline.toLocaleString() %>
+              </h3>
             </div>
             <a class="view" href="/tasks/<%= task._id %>">View</a>
           </div>
         </li>
         <% }) %>
       </ul>
+      <% } %>
     </div>
   </body>
 </html>
