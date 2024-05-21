@@ -57,41 +57,45 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASSWORD,
-  },
-});
-
-async function scheduleReminderEmail(userEmail, taskTitle, taskDescription, taskDeadline) {
+async function scheduleReminderEmail(
+  userEmail,
+  taskTitle,
+  taskDescription,
+  taskDeadline
+) {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-      },
-    });
-
-    // Calculate the time to send the email (one hour before the deadline)
+    // Calculate the reminder time (one hour before the deadline)
     const reminderTime = new Date(taskDeadline.getTime() - 3600 * 1000);
 
     // Convert reminder time to cron pattern
     const cronPattern = `${reminderTime.getMinutes()} ${reminderTime.getHours()} * * *`;
 
-    // Send the email
-    await transporter.sendMail({
-      from: process.env.EMAIL,
-      to: userEmail,
-      subject: `Reminder: Task "${taskTitle}" is due soon`,
-      text: `This is a reminder that your task "${taskTitle}":\n ${taskDescription}.\n is due in one hour. \nDeadline: ${taskDeadline.toLocaleString()}\n.Please complete it on time.`,
-    });
+    // Schedule the email using node-cron
+    cron.schedule(cronPattern, async () => {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.EMAIL,
+            pass: process.env.PASSWORD,
+          },
+        });
 
-    console.log("Reminder email sent successfully");
+        // Send the email
+        await transporter.sendMail({
+          from: process.env.EMAIL,
+          to: userEmail,
+          subject: `Reminder: Task "${taskTitle}" is due soon`,
+          text: `This is a reminder that your task "${taskTitle}":\n ${taskDescription}.\n is due in one hour. \nDeadline: ${taskDeadline.toLocaleString()}\nPlease complete it on time.`,
+        });
+
+        console.log("Reminder email sent successfully");
+      } catch (error) {
+        console.error("Error sending reminder email:", error);
+      }
+    });
   } catch (error) {
-    console.error("Error sending reminder email:", error);
+    console.error("Error scheduling reminder email:", error);
   }
 }
 
