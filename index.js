@@ -13,6 +13,7 @@ import Task from "./models/task.js";
 import User from "./models/user.js";
 import AppError from "./AppError.js";
 import { protect } from "./middleware/auth.js";
+import cron from "node-cron";
 
 dotenv.config();
 
@@ -64,23 +65,32 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendReminderEmail(
+function scheduleReminderEmail(
   userEmail,
   taskTitle,
   taskDescription,
   taskDeadline
 ) {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL,
-      to: userEmail,
-      subject: `Reminder: Task "${taskTitle}" is due soon`,
-      text: `This is a reminder that your task "${taskTitle}:"\n ${taskDescription}.\n is due in one hour. \nDeadline: ${taskDeadline}\n.Please complete it on time.`,
-    });
-    console.log("Reminder email sent successfully");
-  } catch (error) {
-    console.error("Error sending reminder email:", error);
-  }
+  // Calculate the time to send the email (one hour before the deadline)
+  const reminderTime = new Date(taskDeadline.getTime() - 3600 * 1000);
+
+  // Convert reminder time to cron pattern
+  const cronPattern = `${reminderTime.getMinutes()} ${reminderTime.getHours()} * * *`;
+
+  // Schedule the email using node-cron
+  cron.schedule(cronPattern, async () => {
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL,
+        to: userEmail,
+        subject: `Reminder: Task "${taskTitle}" is due soon`,
+        text: `This is a reminder that your task "${taskTitle}":\n ${taskDescription}.\n is due in one hour. \nDeadline: ${taskDeadline.toLocaleString()}\n.Please complete it on time.`,
+      });
+      console.log("Reminder email sent successfully");
+    } catch (error) {
+      console.error("Error sending reminder email:", error);
+    }
+  });
 }
 
 function wrapAsync(fn) {
@@ -206,11 +216,12 @@ app.post("/tasks/new", protect, async (req, res, next) => {
     });
     await newTask.save();
 
-    await sendReminderEmail(
+    // Schedule the reminder email
+    scheduleReminderEmail(
       userEmail,
       newTask.title,
       newTask.description,
-      newTask.deadline
+      deadlineDate
     );
 
     res.redirect("/tasks");

@@ -23,6 +23,7 @@
     "moment-timezone": "^0.5.45",
     "mongoose": "^8.4.0",
     "nanoid": "^5.0.6",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
     "path": "^0.12.7"
   }
